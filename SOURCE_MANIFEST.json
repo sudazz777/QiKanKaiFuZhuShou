@@ -1,8 +1,8 @@
 {
-  "version": "1.6.4",
-  "fileVersion": "1.6.4.0",
+  "version": "1.6.5",
+  "fileVersion": "1.6.5.0",
   "preparedOn": "2026-10-14",
-  "unchangedRuntimeInputs": true,
+  "unchangedRuntimeInputs": false,
   "runtimeInputs": [
     {
       "path": "assets/bannerlord-knight.ico",
@@ -11,13 +11,13 @@
     },
     {
       "path": "src/CoopLauncherV2.cs",
-      "size": 55308,
-      "sha256": "ec2bf5c3613b0301baca42ef5602a70b4d619b088870993a5a7921cf318124fa"
+      "size": 55856,
+      "sha256": "ddd3a43ae70c46582b0f89f0bc8c10f8cc7aa849418100a8b282e73b255bc2fe"
     },
     {
       "path": "src/HostBootstrap.cs",
-      "size": 12410,
-      "sha256": "ae713e525630aa37c791f6cd1c884b5b52f9b4eeb25ad1e0f484497d76d72e3b"
+      "size": 12477,
+      "sha256": "e52c9e5d8cc475a4be2b674951e166d8568d8ffde76a21d456c4f590ee5da1bb"
     },
     {
       "path": "src/HostInstallation.cs",
@@ -53,6 +53,11 @@
       "path": "src/SteamRuntime.cs",
       "size": 10167,
       "sha256": "ca6aa06b37c0ad1744ef2abee43c2637c8d3054a9000e92ce662077c4788a16a"
+    },
+    {
+      "path": "src/ServerConsole.cs",
+      "size": 10702,
+      "sha256": "2d8c65552fc142759095cd5e45a7b244c43168feb01cc4fd1930c821659d027b"
     }
   ]
 }

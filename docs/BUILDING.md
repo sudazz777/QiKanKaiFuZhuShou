@@ -4,7 +4,7 @@
 
 在 64 位 Windows 上运行 `build.cmd`，或在项目目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1`。
 
-脚本调用 `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`，编译显式列出的九个 C# 文件，并将图标作为 Windows 图标及 `CoopLauncher.AppIcon.ico` 资源嵌入。只引用 .NET Framework 自带的 Windows Forms、Drawing、Web Extensions 与 Visual Basic 等程序集。
+脚本调用 `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`，编译显式列出的十个 C# 文件，并将图标作为 Windows 图标及 `CoopLauncher.AppIcon.ico` 资源嵌入。只引用 .NET Framework 自带的 Windows Forms、Drawing、Web Extensions 与 Visual Basic 等程序集。
 
 默认输出：`bin\Release\BannerlordCoopLauncher.exe`。也可指定输出目录：
 
@@ -22,7 +22,7 @@
 
 ## 自动检查
 
-运行 `test.cmd` 或 `test.ps1`。脚本在临时目录中编译程序并调用内置的 `--self-test` 入口，输出 `self-test.txt`。所有写入使用独立模拟目录，安装检测只读；测试中的密码、世界和路径字符串是夹具。
+运行 `test.cmd` 或 `test.ps1`。脚本在临时目录中编译程序并调用内置的 `--self-test` 入口，输出 `self-test.txt`。所有写入使用独立模拟目录，安装检测只读；测试中的密码、世界和路径字符串是夹具。控制台检查另启独立模拟进程，验证隐藏时的中文输出、命令响应及窗口恢复，不启动真实服务器。
 
 回收测试使用模拟回收操作，验证文件成组迁移和失败恢复，不调用真实回收站 API。真实回收接口和运行服务器保存不由此脚本执行。
 

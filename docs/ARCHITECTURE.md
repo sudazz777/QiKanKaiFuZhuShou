@@ -20,6 +20,14 @@
 
 玩法配置位于同一用户目录中的 `CoopData/mod-config.json`。
 
+## 内嵌服务器控制台
+
+`ServerConsole` 在助手内显示服务器原生控制台最近 120 行输出，使用 `AttachConsole` 和 `ReadConsoleOutputW` 读取缓冲区，并跳过宽字符的尾单元。启动指定 `WindowStyle.Hidden`，保留控制台，避免 `CreateNoWindow` 或输入重定向破坏已有 `WriteConsoleInput` 保存与停止流程。每次原生操作后释放句柄并脱离服务器控制台。
+
+服务器协议及交互提示保留在原输出中，用户自行阅读并输入；助手不自动接受协议。控制台可按需恢复显示，关闭助手时恢复独立窗口，不结束服务器。读取失败时回退展示服务器日志文件并提供独立窗口入口。
+
+隔离检查启动助手自身的控制台模拟模式，验证中文输出、单行命令响应、窗口隐藏/恢复及正常退出，不依赖或启动真实服务器。
+
 ## Steam
 
 专用服务器负责 Steam GameServer 登录与创建大厅；助手从当前服务器日志取得大厅编号。`SteamJoinBridge` 通过已安装 MOD 的 Steamworks 包装器异步检查大厅所有者和必要元数据，再发布当前账号的 Rich Presence 加入信息。

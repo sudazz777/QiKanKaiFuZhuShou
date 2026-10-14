@@ -17,7 +17,7 @@ if (!(Test-Path -LiteralPath $compiler -PathType Leaf)) {
 $sourceNames = @(
     'CoopLauncherV2.cs', 'SteamJoinBridge.cs', 'SaveStorage.cs',
     'SaveManagement.cs', 'InstantSave.cs', 'SteamRuntime.cs',
-    'HostInstallation.cs', 'HostBootstrap.cs', 'InstallationPage.cs'
+    'HostInstallation.cs', 'HostBootstrap.cs', 'InstallationPage.cs', 'ServerConsole.cs'
 )
 $sources = @($sourceNames | ForEach-Object { Join-Path $projectRoot ('src\' + $_) })
 $icon = Join-Path $projectRoot 'assets\bannerlord-knight.ico'

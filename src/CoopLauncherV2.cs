@@ -12,11 +12,12 @@ using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
-[assembly: System.Reflection.AssemblyFileVersion("1.6.4.0")]
-[assembly: System.Reflection.AssemblyInformationalVersion("2026.10.12 新电脑兼容版")]
+[assembly: System.Reflection.AssemblyFileVersion("1.6.5.0")]
+[assembly: System.Reflection.AssemblyInformationalVersion("2026.10.14 内嵌控制台版")]
 
 internal static class Program {
  [STAThread] static void Main(string[] args) {
+  if(args.Length==1 && args[0]=="--console-fixture") {ServerConsoleChecks.RunFixture();return;}
   if(args.Length==2 && args[0]=="--self-test") { HostInstallation.Current=HostInstallation.Detect();LauncherChecks.Run(args[1]); return; }
   if(args.Length==2 && args[0]=="--render-difficulty") {Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);HostInstallation.Current=HostInstallation.Detect();using(var launcher=new CoopLauncher(true,false))launcher.RenderDifficulty(args[1]);return;}
   if(args.Length==2 && args[0]=="--render-world") {Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);HostInstallation.Current=HostInstallation.Detect();using(var launcher=new CoopLauncher(true,false))launcher.RenderWorld(args[1]);return;}
@@ -62,7 +63,7 @@ internal sealed partial class CoopLauncher : Form {
  public CoopLauncher(bool previewOnly,bool needsSetup) {
   firstSetup=needsSetup;installationReady=!needsSetup&&HostBootstrap.Inspect(HostInstallation.Current).Length==0;
   bridge=new SteamJoinBridge(HostInstallation.Current.ModuleBin);
-  preview=previewOnly; Text="骑砍2开服助手 · 公开大厅与战役设置 · v1.6.4";
+  preview=previewOnly; Text="骑砍2开服助手 · 公开大厅与战役设置 · v1.6.5";
   LoadAppIcon();
   AutoScaleMode=AutoScaleMode.Dpi; Font=new Font("Microsoft YaHei UI",10);
   ClientSize=new Size(780,756);MinimumSize=new Size(600,450);AutoScroll=true;AutoScrollMinSize=new Size(780,756);FormBorderStyle=FormBorderStyle.Sizable;MaximizeBox=true;
@@ -73,7 +74,7 @@ internal sealed partial class CoopLauncher : Form {
   notice.SetBounds(26,159,728,26); notice.ForeColor=Color.DimGray;
   tabs.SetBounds(24,199,732,357);
   worldPage=new TabPage("开服与存档"); difficultyPage=new TabPage("详细难度"); tabs.TabPages.AddRange(new[]{worldPage,difficultyPage,installationPage});
-  BuildWorldPage(worldPage); BuildDifficultyPage(difficultyPage);BuildInstallationPage();
+  BuildWorldPage(worldPage); BuildDifficultyPage(difficultyPage);BuildInstallationPage();BuildConsolePage();
   start.Text="启动服务器"; start.SetBounds(24,574,138,43); start.Click+=(s,e)=>Guard(()=>StartServer(CaptureDraft()));
   saveNow.Text="立刻保存"; saveNow.SetBounds(173,574,138,43); saveNow.Click+=(s,e)=>Guard(BeginInstantSave);
   restart.Text="保存并重启"; restart.SetBounds(322,574,138,43); restart.Click+=(s,e)=>Guard(BeginRestart);
@@ -87,6 +88,7 @@ internal sealed partial class CoopLauncher : Form {
   statusTimer.Interval=1000; statusTimer.Tick+=(s,e)=>RefreshStatus(); statusTimer.Start();
   steamTimer.Interval=100; steamTimer.Tick+=(s,e)=>{if(!preview&&installationReady)bridge.Tick(candidateLobby);friendState.Text="好友头像 / 资料页加入："+(!installationReady?"请先完成本机安装适配":preview?"预览模式，未发布加入入口":bridge.StatusText.Replace("Steam 好友加入入口：", ""));friendState.ForeColor=bridge.EntryReady?Color.DarkGreen:Color.DarkGoldenrod;};steamTimer.Start();
   Shown+=(s,e)=>OnLauncherShown();
+  FormClosing+=(s,e)=>RestoreServerConsole();
   FormClosed+=(s,e)=>{statusTimer.Dispose();steamTimer.Dispose();bridge.Dispose();};
  }
  void LoadAppIcon() {
@@ -328,11 +330,11 @@ internal sealed partial class CoopLauncher : Form {
   // Plain dedicated mode uses the authoritative data folder, creates missing worlds from its template,
   // and advertises a public Steam lobby. /coopsave switches save storage and is deliberately omitted.
   var launch=ServerProcess(HostInstallation.Current);
-  var p=Process.Start(launch);trackedPid=p.Id;p.Dispose();
+  var p=Process.Start(launch);trackedPid=p.Id;p.Dispose();tabs.SelectedTab=consolePage;
   info.Text="正在加载“"+draft.Save.Name+"”，预计约一分钟。公开大厅 · "+PasswordState(!string.IsNullOrEmpty(draft.Password))+"。Steam 入口就绪后，好友可点资料页的“加入游戏”。"+steamRuntimeNotice;LogEvent("启动专用服务器，存档="+runningSave);RefreshStatus();
  }
  internal static ProcessStartInfo ServerProcess(HostInstallation install) {
-  var launch=new ProcessStartInfo(Path.Combine(install.ServerDir,"BannerlordCoopServer.exe"),"--data-dir \""+install.DataDir+"\""){WorkingDirectory=install.ServerDir,UseShellExecute=false,CreateNoWindow=false,WindowStyle=ProcessWindowStyle.Normal};
+  var launch=new ProcessStartInfo(Path.Combine(install.ServerDir,"BannerlordCoopServer.exe"),"--data-dir \""+install.DataDir+"\""){WorkingDirectory=install.ServerDir,UseShellExecute=false,CreateNoWindow=false,WindowStyle=ProcessWindowStyle.Hidden};
   // Pin only this child's data locations; inherited global overrides must not redirect worlds or difficulty.
   launch.EnvironmentVariables["BANNERLORD_USER_DIR"]=install.DataDir;
   launch.EnvironmentVariables["COOP_DATA_DIR"]=Path.GetDirectoryName(install.ModConfigPath);
@@ -346,12 +348,12 @@ internal sealed partial class CoopLauncher : Form {
  void StopServer() {
   if(pendingExport!=null||pendingInstantSave!=null)throw new Exception("正在保存存档，请等待任务结束。");
   pendingRestart=null;tabs.Enabled=true;using(var p=FindServer()){if(p==null){RefreshStatus();return;}ConsoleInput.Send((uint)p.Id,"stop");}
-  info.Text="已请求保存并停止，请等待服务器窗口退出。";LogEvent("请求保存并停止");
+  info.Text="已请求保存并停止，请等待服务器保存后退出。";LogEvent("请求保存并停止");
  }
  void OpenGame(){Process.Start(new ProcessStartInfo("steam://rungameid/261550"){UseShellExecute=true});}
  void RefreshStatus() {
   try {
-   if(!installationReady){ready=false;candidateLobby="";start.Enabled=saveNow.Enabled=restart.Enabled=stop.Enabled=exportSave.Enabled=deleteSave.Enabled=renameSave.Enabled=false;localState.Text="本机服务器：等待安装适配";localState.ForeColor=Color.DarkGoldenrod;steamState.Text="Steam 公开大厅：完成适配后可开服";steamState.ForeColor=Color.DarkGoldenrod;notice.Text="请在“本机安装设置”中检查检测结果。";return;}
+   if(!installationReady){UpdateServerConsole(null,"");ready=false;candidateLobby="";start.Enabled=saveNow.Enabled=restart.Enabled=stop.Enabled=exportSave.Enabled=deleteSave.Enabled=renameSave.Enabled=false;localState.Text="本机服务器：等待安装适配";localState.ForeColor=Color.DarkGoldenrod;steamState.Text="Steam 公开大厅：完成适配后可开服";steamState.ForeColor=Color.DarkGoldenrod;notice.Text="请在“本机安装设置”中检查检测结果。";return;}
    using(var p=FindServer()) {
     bool running=p!=null;bool busy=pendingRestart!=null||pendingExport!=null||pendingInstantSave!=null;start.Enabled=settingsLoaded&&!running&&!busy&&saves.SelectedItem!=null;saveNow.Enabled=running&&ready&&!busy;restart.Enabled=settingsLoaded&&!busy&&saves.SelectedItem!=null;stop.Enabled=running&&!busy;exportSave.Enabled=!busy&&saves.SelectedItem!=null;deleteSave.Enabled=!busy&&saves.SelectedItem!=null;renameSave.Enabled=!busy&&saves.SelectedItem!=null;
     if(pendingExport!=null) {
@@ -360,12 +362,13 @@ internal sealed partial class CoopLauncher : Form {
      else if(DateTime.Now>pendingExport.Deadline){pendingExport=null;tabs.Enabled=true;info.Text="服务器还未完全退出，已取消导出，避免复制未保存的战役。请等服务器保存退出后重试。";}
     }
     if(!running) {
+     UpdateServerConsole(null,"");
      PollInstantSave(null,"");
      ready=false;candidateLobby="";currentLog="";trackedPid=0;runningSave="";runningHasPassword=null;localState.Text="本机服务器：未运行";localState.ForeColor=Color.Firebrick;
      steamState.Text="Steam 公开大厅：等待开服";steamState.ForeColor=Color.DarkGoldenrod;notice.Text="选档 "+SelectedName()+" · 修改会在下次启动时生效";
      if(pendingRestart!=null){var draft=pendingRestart;pendingRestart=null;tabs.Enabled=true;StartServer(draft);}return;
     }
-    if(pendingRestart!=null&&DateTime.Now>restartDeadline){pendingRestart=null;tabs.Enabled=true;info.Text="服务器还没有退出，已取消自动重启。请查看服务器窗口，避免重复开服。";}
+    if(pendingRestart!=null&&DateTime.Now>restartDeadline){pendingRestart=null;tabs.Enabled=true;info.Text="服务器还没有退出，已取消自动重启。请查看“服务器控制台”，避免重复开服。";}
     if(trackedPid!=p.Id){trackedPid=p.Id;serverStarted=p.StartTime;currentLog="";candidateLobby="";runningSave="";runningHasPassword=null;}
     if(serverStarted==DateTime.MinValue)serverStarted=p.StartTime;
     if(string.IsNullOrEmpty(currentLog)) {
@@ -373,6 +376,7 @@ internal sealed partial class CoopLauncher : Form {
      if(dir.Exists){var file=dir.GetFiles("coop-server-*.log").Where(f=>f.CreationTime>=serverStarted.AddSeconds(-10)).OrderByDescending(f=>f.LastWriteTime).FirstOrDefault();if(file!=null)currentLog=file.FullName;}
     }
     string log="";if(!string.IsNullOrEmpty(currentLog))using(var stream=new FileStream(currentLog,FileMode.Open,FileAccess.Read,FileShare.ReadWrite))using(var reader=new StreamReader(stream)){log=reader.ReadToEnd();}
+    UpdateServerConsole(p,log);
     bool failed=log.Contains("server exited unexpectedly")||log.Contains("session ended (exit");
     ready=!failed&&Regex.IsMatch(log,@"^\d\d:\d\d:\d\d\.\d+\s+\[DedicatedServer\] SERVING(?:\s|$)",RegexOptions.Multiline);
     localState.Text=failed?"本机服务器：已退出，请关闭原窗口后重试":ready?"本机服务器：已就绪 · 127.0.0.1:4200":"本机服务器：正在加载战役";localState.ForeColor=ready?Color.DarkGreen:failed?Color.Firebrick:Color.DarkGoldenrod;
@@ -457,6 +461,7 @@ internal static class LauncherChecks {
   SaveStorage.Check(reportPath,results);
   InstantSaveConfirmation.Check(reportPath,results);
   HostInstallation.Check(reportPath,results);HostBootstrap.Check(reportPath,results);
+  ServerConsoleChecks.Check(results);
   CheckClientPreferences(reportPath,original,mod,results);
   string savedLine="20:10:01.234 [DedicatedServer] autosave: world saved to '测试战役.sav' (1273 ms)\r\n";
   if(!CoopLauncher.HasWorldSaved(savedLine,"测试战役")||CoopLauncher.HasWorldSaved(savedLine,"测试")||CoopLauncher.HasWorldSaved("", "测试战役")||CoopLauncher.HasWorldSaved("startup help: "+savedLine,"测试战役"))throw new Exception("Fresh saved world confirmation failed");
@@ -491,7 +496,7 @@ internal static class LauncherChecks {
  }
 }
 
-internal static class ConsoleInput {
+internal static partial class ConsoleInput {
  [DllImport("kernel32.dll",SetLastError=true)]static extern bool FreeConsole();
  [DllImport("kernel32.dll",SetLastError=true)]static extern bool AttachConsole(uint pid);
  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern IntPtr CreateFile(string name,uint access,uint share,IntPtr sec,uint creation,uint flags,IntPtr template);
@@ -499,7 +504,8 @@ internal static class ConsoleInput {
  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern bool WriteConsoleInput(IntPtr h,Input[] inputs,uint count,out uint written);
  [DllImport("kernel32.dll")]static extern bool CloseHandle(IntPtr h);
  public static void Send(uint pid,string command){
-  string manual="请在服务器窗口手动输入 "+command+"。";
+  if(command==null||command.Length>1024||command.IndexOfAny(new[]{'\r','\n','\0'})>=0)throw new ArgumentException("请一次发送一条命令，最多1024个字符。");
+  string manual="请在“服务器控制台”页显示独立窗口后手动输入 "+command+"。";
   FreeConsole();if(!AttachConsole(pid))throw new Exception("无法向服务器发送指令，"+manual);
   var h=CreateFile("CONIN$",0x40000000,3,IntPtr.Zero,3,0,IntPtr.Zero);
   if(h==new IntPtr(-1)){FreeConsole();throw new Exception("无法访问服务器输入，"+manual);}

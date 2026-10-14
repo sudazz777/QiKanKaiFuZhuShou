@@ -1,8 +1,8 @@
 # 骑砍2开服助手
 
-用于 Windows 上《骑马与砍杀2》Bannerlord Co-op MOD 专用服务器的中文开服助手。当前版本为 **v1.6.4**，源码整理日期为 **2026-10-14**。
+用于 Windows 上《骑马与砍杀2》Bannerlord Co-op MOD 专用服务器的中文开服助手。当前版本为 **v1.6.5**，源码整理日期为 **2026-10-14**。
 
-[打开独立下载页](https://qikan2-launcher-sudazz777.meisen111.chatgpt.site) · [⬇ 下载 Windows 64 位成品 v1.6.4](https://github.com/sudazz777/QiKanKaiFuZhuShou/releases/download/v1.6.4/BannerlordCoopLauncher-v1.6.4-win-x64.zip)
+[打开独立下载页](https://qikan2-launcher-sudazz777.meisen111.chatgpt.site) · [⬇ 下载 Windows 64 位成品 v1.6.5](https://github.com/sudazz777/QiKanKaiFuZhuShou/releases/download/v1.6.5/BannerlordCoopLauncher-v1.6.5-win-x64.zip)
 
 下载后“全部解压”，双击“骑砍2开服助手.exe”。成品包包含程序及使用说明。当前仓库与下载页保持私有，GitHub 成品下载需要登录有权限的账号。
 
@@ -12,6 +12,7 @@
 
 - 自动检测 Steam、多盘游戏库、游戏和专用服务器位置，支持首次适配与手动选择安装目录。
 - 启动服务器、保存并重启、保存并停止，以及打开游戏。
+- 内嵌服务器控制台，默认隐藏独立黑色窗口；实时查看最近 120 行输出并发送命令。关闭助手时恢复独立窗口，服务器继续运行。
 - 公开 Steam 大厅状态显示，并尝试发布 Steam 好友资料页加入入口。
 - 新建或导入战役、立刻保存当前进度、完整导出到桌面。
 - 存档改名时同步世界、联机角色记录和两组历史备份。
@@ -52,9 +53,13 @@
 
 脚本先编译，再运行程序内置的配置、存档、路径和保存确认测试。模拟数据和结果默认保存于 Windows 临时目录的独立文件夹。测试只读检测当前电脑安装，不启动真实服务器，也不修改真实存档或调用真实回收站删除。
 
-本源码整理包已重新编译并通过 30 项检查。验证范围见 [验证记录](docs/VERIFICATION.md)。
+自动发布前会在 Windows 上编译并运行内置检查，包含隔离控制台的日志、命令与窗口恢复验证。验证范围见 [验证记录](docs/VERIFICATION.md)。
 
-## v1.6.4 修复
+## v1.6.5 内嵌控制台
+
+启动后自动切换到“服务器控制台”。日志与协议提示在助手中显示，命令可在下方输入并发送。取消“自动刷新”可暂停画面更新；需要完整控制台时勾选“显示独立窗口”。关闭助手不会停止服务器，而是恢复其独立控制台。
+
+## 已包含的 v1.6.4 修复
 
 旧版助手在启动前写入客户端 `coop_options.json` 的 `lastServerAddress`。新电脑没有这个可选字段时会出现“配置字段缺失或重复”错误。当前版本取消这项客户端历史地址写入，服务器设置仍严格验证。
 
@@ -65,6 +70,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `src/CoopLauncherV2.cs` | 程序入口、主界面、服务器启停、配置编辑及综合检查 |
+| `src/ServerConsole.cs` | 内嵌控制台界面、原生缓冲区读取、窗口管理与隔离检查 |
 | `src/InstallationPage.cs` | 本机安装设置界面与首次适配流程 |
 | `src/HostInstallation.cs` | Steam 库、游戏与服务器路径检测，本机安装记录 |
 | `src/HostBootstrap.cs` | 安装完整性与版本检查，初始化缺失配置和模板 |
@@ -75,7 +81,7 @@
 | `src/InstantSave.cs` | 发送保存指令，核对本次日志、世界与角色文件写入 |
 | `assets/bannerlord-knight.ico` | 嵌入程序的骑士图标 |
 
-更多实现说明见 [架构说明](docs/ARCHITECTURE.md)。`SOURCE_MANIFEST.json` 记录核心源码和图标的 SHA-256，便于核对整理包与最新版源文件一致。
+更多实现说明见 [架构说明](docs/ARCHITECTURE.md)。`SOURCE_MANIFEST.json` 记录核心源码和图标的 SHA-256，便于核对发布版本的实际编译输入。
 
 ## 上传 GitHub
 
