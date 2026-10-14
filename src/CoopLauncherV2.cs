@@ -12,8 +12,8 @@ using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
-[assembly: System.Reflection.AssemblyFileVersion("1.6.7.0")]
-[assembly: System.Reflection.AssemblyInformationalVersion("2026.10.14 默认开服与存档页")]
+[assembly: System.Reflection.AssemblyFileVersion("1.6.8.0")]
+[assembly: System.Reflection.AssemblyInformationalVersion("2026.10.14 控制台隐藏任务栏")]
 
 internal static class Program {
  [STAThread] static void Main(string[] args) {
@@ -63,7 +63,7 @@ internal sealed partial class CoopLauncher : Form {
  public CoopLauncher(bool previewOnly,bool needsSetup) {
   firstSetup=needsSetup;installationReady=!needsSetup&&HostBootstrap.Inspect(HostInstallation.Current).Length==0;
   bridge=new SteamJoinBridge(HostInstallation.Current.ModuleBin);
-  preview=previewOnly; Text="骑砍2开服助手 · 公开大厅与战役设置 · v1.6.7";
+  preview=previewOnly; Text="骑砍2开服助手 · 公开大厅与战役设置 · v1.6.8";
   LoadAppIcon();
   AutoScaleMode=AutoScaleMode.Dpi; Font=new Font("Microsoft YaHei UI",10);
   ClientSize=new Size(780,756);MinimumSize=new Size(600,450);AutoScroll=true;AutoScrollMinSize=new Size(780,756);FormBorderStyle=FormBorderStyle.Sizable;MaximizeBox=true;

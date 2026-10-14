@@ -1,8 +1,8 @@
 # 骑砍2开服助手
 
-用于 Windows 上《骑马与砍杀2》Bannerlord Co-op MOD 专用服务器的中文开服助手。当前版本为 **v1.6.7**，源码整理日期为 **2026-10-14**。
+用于 Windows 上《骑马与砍杀2》Bannerlord Co-op MOD 专用服务器的中文开服助手。当前版本为 **v1.6.8**，源码整理日期为 **2026-10-14**。
 
-[打开独立下载页](https://qikan2-launcher-sudazz777.meisen111.chatgpt.site) · [⬇ 下载 Windows 64 位成品 v1.6.7](https://github.com/sudazz777/QiKanKaiFuZhuShou/releases/download/v1.6.7/BannerlordCoopLauncher-v1.6.7-win-x64.zip)
+[打开独立下载页](https://qikan2-launcher-sudazz777.meisen111.chatgpt.site) · [⬇ 下载 Windows 64 位成品 v1.6.8](https://github.com/sudazz777/QiKanKaiFuZhuShou/releases/download/v1.6.8/BannerlordCoopLauncher-v1.6.8-win-x64.zip)
 
 下载后“全部解压”，双击“骑砍2开服助手.exe”。
 
@@ -30,7 +30,11 @@
 助手不附带游戏、MOD、服务器、Steam SDK DLL 或用户存档。Steam 联机依赖 Steam 在线、版本匹配及可用网络；公开大厅可见与玩家实际进入战役是两个独立状态。
 
 
-## v1.6.7 默认开服与存档页
+## v1.6.8 控制台不显示在任务栏
+
+服务器控制台默认在后台运行，日志可在助手内查看。独立服务器窗口不会添加任务栏图标；手动显示独立窗口时也不添加任务栏入口。助手主窗口保留自己的任务栏图标。
+
+## 已包含的 v1.6.7 默认开服与存档页
 
 打开助手首先显示“开服与存档”。自动或手动启动服务器后保持当前页面；日志仍在“服务器控制台”中查看。安装未完成时，在顶部提示中引导用户到“本机安装设置”完成适配。
 

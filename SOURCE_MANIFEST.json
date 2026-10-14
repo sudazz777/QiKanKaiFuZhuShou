@@ -1,6 +1,6 @@
 {
-  "version": "1.6.7",
-  "fileVersion": "1.6.7.0",
+  "version": "1.6.8",
+  "fileVersion": "1.6.8.0",
   "preparedOn": "2026-10-14",
   "unchangedRuntimeInputs": false,
   "runtimeInputs": [
@@ -12,7 +12,7 @@
     {
       "path": "src/CoopLauncherV2.cs",
       "size": 56118,
-      "sha256": "4c7a36e5d23aa6f74fe2b7baacbdab233e3ddaee4bd258e4fb7eb61b31f8a232"
+      "sha256": "01bc1669883d5dc7cc9ac9b9eb5f7d99f3cd003cf854af86bc59f56da461cae7"
     },
     {
       "path": "src/HostBootstrap.cs",
@@ -56,8 +56,8 @@
     },
     {
       "path": "src/ServerConsole.cs",
-      "size": 10621,
-      "sha256": "d5a7d4260ccbec478b27f98850a3fc4c0e5a9d5b4e05347f5ad671280aa3b3b9"
+      "size": 12941,
+      "sha256": "ce9dff814511599bda9ca72f418248deae1a3773e09c6e37d7411ec1dc331d6b"
     },
     {
       "path": "src/LauncherShutdown.cs",

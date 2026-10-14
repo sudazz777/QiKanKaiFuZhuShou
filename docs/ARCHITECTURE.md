@@ -22,7 +22,7 @@
 
 ## 内嵌服务器控制台
 
-`ServerConsole` 在助手内显示服务器原生控制台最近 120 行输出，使用 `AttachConsole` 和 `ReadConsoleOutputW` 读取缓冲区，并跳过宽字符的尾单元。启动指定 `WindowStyle.Hidden`，保留控制台，避免 `CreateNoWindow` 或输入重定向破坏已有 `WriteConsoleInput` 保存与停止流程。每次原生操作后释放句柄并脱离服务器控制台。
+`ServerConsole` 在助手内显示服务器原生控制台最近 120 行输出，使用 `AttachConsole` 和 `ReadConsoleOutputW` 读取缓冲区，并跳过宽字符的尾单元。启动指定 `WindowStyle.Hidden`，保留控制台，避免 `CreateNoWindow` 或输入重定向破坏已有 `WriteConsoleInput` 保存与停止流程。每次原生操作后释放句柄并脱离服务器控制台。读取和手动显示时，对该服务器控制台移除 `WS_EX_APPWINDOW`、设置 `WS_EX_TOOLWINDOW` 并刷新窗口样式，使其不创建任务栏入口；不修改助手窗口或其他终端窗口。
 
 服务器协议及交互提示保留在原输出中，用户自行阅读并输入；助手不自动接受协议。控制台可按需恢复显示。`LauncherShutdown` 处理关闭：取消自动重启，等待当前保存/导出，发送一次 `stop`，持续检查服务器退出与 UDP 端口释放，再结束助手。关闭过程保持窗口及计时器运行；停服超时保留助手并恢复操作，不强制结束服务器。助手保留自己启动的进程引用，避免进程路径检测暂时失败时漏掉后台服务器。读取失败时回退展示服务器日志文件并提供独立窗口入口。
 

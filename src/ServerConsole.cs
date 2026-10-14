@@ -93,17 +93,39 @@ internal static partial class ConsoleInput {
  [DllImport("kernel32.dll")]static extern IntPtr GetConsoleWindow();
  [DllImport("user32.dll")]static extern bool ShowWindow(IntPtr window,int mode);
  [DllImport("user32.dll")]static extern bool IsWindowVisible(IntPtr window);
+ [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW",SetLastError=true)]static extern IntPtr GetWindowLongPtr(IntPtr window,int index);
+ [DllImport("user32.dll",EntryPoint="SetWindowLongPtrW",SetLastError=true)]static extern IntPtr SetWindowLongPtr(IntPtr window,int index,IntPtr value);
+ [DllImport("user32.dll",SetLastError=true)]static extern bool SetWindowPos(IntPtr window,IntPtr after,int x,int y,int width,int height,uint flags);
+ [DllImport("kernel32.dll",EntryPoint="SetLastError")]static extern void ClearLastError(uint error);
+ const long ToolWindowStyle=0x80,AppWindowStyle=0x40000;
+
+ static long ExtendedStyle(IntPtr window) {
+  ClearLastError(0);long style=GetWindowLongPtr(window,-20).ToInt64();int error=Marshal.GetLastWin32Error();
+  if(style==0&&error!=0)throw new System.ComponentModel.Win32Exception(error);
+  return style;
+ }
+ static void SuppressTaskbar(IntPtr window) {
+  long style=ExtendedStyle(window),desired=(style&~AppWindowStyle)|ToolWindowStyle;
+  if(style==desired)return;
+  // Refresh only this server's console window; never change the launcher's window.
+  bool visible=IsWindowVisible(window);ShowWindow(window,0);
+  try {
+   ClearLastError(0);var previous=SetWindowLongPtr(window,-20,new IntPtr(desired));int error=Marshal.GetLastWin32Error();
+   if(previous==IntPtr.Zero&&error!=0)throw new System.ComponentModel.Win32Exception(error);
+   if(!SetWindowPos(window,IntPtr.Zero,0,0,0,0,0x37))throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+  }finally{if(visible)ShowWindow(window,8);}
+ }
 
  internal static void SetVisible(uint pid,bool visible) {
   FreeConsole();if(!AttachConsole(pid))throw new Exception("暂时无法连接服务器控制台，请稍后重试。");
-  try{var window=GetConsoleWindow();if(window!=IntPtr.Zero)ShowWindow(window,visible?5:0);}
+  try{var window=GetConsoleWindow();if(window!=IntPtr.Zero){SuppressTaskbar(window);ShowWindow(window,visible?5:0);}}
   finally{FreeConsole();}
  }
  internal static string ReadSnapshot(uint pid,bool hide) {
   FreeConsole();if(!AttachConsole(pid))throw new Exception("服务器控制台尚未就绪。");
   IntPtr output=new IntPtr(-1);
   try {
-   var window=GetConsoleWindow();if(hide&&window!=IntPtr.Zero)ShowWindow(window,0);
+   var window=GetConsoleWindow();if(window!=IntPtr.Zero){if(hide)ShowWindow(window,0);SuppressTaskbar(window);}
    output=CreateFile("CONOUT$",0x80000000,3,IntPtr.Zero,3,0,IntPtr.Zero);
    ScreenInfo screen;if(output==new IntPtr(-1)||!GetConsoleScreenBufferInfo(output,out screen)||screen.Size.X<=0)throw new Exception("暂时无法读取服务器输出。");
    int first=Math.Max(0,screen.Cursor.Y-119),rows=screen.Cursor.Y-first+1,width=screen.Size.X;
@@ -120,6 +142,11 @@ internal static partial class ConsoleInput {
  internal static bool WindowVisible(uint pid) {
   FreeConsole();if(!AttachConsole(pid))throw new Exception("Fixture console not available");
   try{return IsWindowVisible(GetConsoleWindow());}finally{FreeConsole();}
+ }
+ internal static bool TaskbarSuppressed(uint pid) {
+  FreeConsole();if(!AttachConsole(pid))throw new Exception("Fixture console not available");
+  try{var window=GetConsoleWindow();if(window==IntPtr.Zero)return false;long style=ExtendedStyle(window);return (style&ToolWindowStyle)!=0&&(style&AppWindowStyle)==0;}
+  finally{FreeConsole();}
  }
 }
 
@@ -148,10 +175,13 @@ internal static class ServerConsoleChecks {
   using(var fixture=Process.Start(new ProcessStartInfo(typeof(Program).Assembly.Location,"--console-fixture"){UseShellExecute=false,CreateNoWindow=false,WindowStyle=ProcessWindowStyle.Hidden})){
    try {
     WaitFor(fixture,"FIXTURE 中文服务器日志");if(ConsoleInput.WindowVisible((uint)fixture.Id))throw new Exception("Console did not remain hidden");
+    if(!ConsoleInput.TaskbarSuppressed((uint)fixture.Id))throw new Exception("Hidden console retained taskbar style");
     results.Add("PASS 隐藏控制台仍能读取中文日志与交互提示，不重定向或关闭服务器输入");
     ConsoleInput.Send((uint)fixture.Id,"ping");WaitFor(fixture,"COMMAND ping");
     results.Add("PASS 内嵌控制台通过原输入通道发送命令，服务器成功接收并响应；拒绝多行命令");
     ConsoleInput.SetVisible((uint)fixture.Id,true);if(!ConsoleInput.WindowVisible((uint)fixture.Id))throw new Exception("Console window was not restored");
+    if(!ConsoleInput.TaskbarSuppressed((uint)fixture.Id))throw new Exception("Visible console regained taskbar style");
+    results.Add("PASS 服务器控制台移除任务栏窗口样式，后台和手动显示时都不添加独立任务栏入口");
     results.Add("PASS 手动显示独立控制台时保留正在运行的服务器进程");
     ConsoleInput.Send((uint)fixture.Id,"exit");if(!fixture.WaitForExit(5000)||fixture.ExitCode!=0)throw new Exception("Fixture did not exit normally");
    }finally{if(!fixture.HasExited){fixture.Kill();fixture.WaitForExit();}}
