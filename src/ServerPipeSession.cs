@@ -53,10 +53,13 @@ internal sealed class ServerPipeSession : IDisposable {
 internal static class ServerPipeChecks {
  internal static void RunFixture(string marker) {
   // No AllocConsole: stdin/stdout remain pipes even when Windows Terminal is the default host.
-  Console.InputEncoding=new UTF8Encoding(false);Console.OutputEncoding=new UTF8Encoding(false);
-  Console.Error.WriteLine("STDERR 模拟错误输出");Console.Write("PIPE 中文日志，请输入命令：");
-  string command;while((command=Console.ReadLine())!=null){
-   Console.WriteLine("COMMAND "+command);
+  var encoding=new UTF8Encoding(false);
+  var reader=new StreamReader(Console.OpenStandardInput(),encoding);
+  var output=new StreamWriter(Console.OpenStandardOutput(),encoding){AutoFlush=true};
+  var error=new StreamWriter(Console.OpenStandardError(),encoding){AutoFlush=true};
+  error.WriteLine("STDERR 模拟错误输出");output.Write("PIPE 中文日志，请输入命令：");
+  string command;while((command=reader.ReadLine())!=null){
+   output.WriteLine("COMMAND "+command);
    if(command=="stop"){Thread.Sleep(250);File.WriteAllText(marker,"saved");return;}
   }
   Environment.ExitCode=1;
