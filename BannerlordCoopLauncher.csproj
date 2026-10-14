@@ -51,6 +51,7 @@
     <Compile Include="src\InstallationPage.cs" />
     <Compile Include="src\ServerConsole.cs" />
     <Compile Include="src\LauncherShutdown.cs" />
+    <Compile Include="src\ServerPipeSession.cs" />
     <EmbeddedResource Include="assets\bannerlord-knight.ico">
       <LogicalName>CoopLauncher.AppIcon.ico</LogicalName>
     </EmbeddedResource>

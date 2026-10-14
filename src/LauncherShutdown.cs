@@ -49,7 +49,7 @@ internal sealed partial class CoopLauncher {
  void DisposeShutdown() {
   closeTimer.Dispose();
   if(closingServer!=null&&closingServer!=startedServer)closingServer.Dispose();
-  if(startedServer!=null)startedServer.Dispose();
+  if(startedServer!=null){ServerPipeSession.Remove((uint)startedServer.Id);startedServer.Dispose();}
  }
 }
 

@@ -60,7 +60,7 @@ internal sealed partial class CoopLauncher {
  void UpdateServerConsole(Process process,string log) {
   bool running=process!=null&&!preview;
   bool busy=closeRequested||pendingRestart!=null||pendingExport!=null||pendingInstantSave!=null;
-  consoleSend.Enabled=consoleCommand.Enabled=running&&!busy;consoleExternal.Enabled=running;
+  consoleSend.Enabled=consoleCommand.Enabled=running&&!busy;consoleExternal.Enabled=running&&!ServerPipeSession.Contains((uint)process.Id);
   if(!running){consoleHint.Text=consoleProcessId==0?"等待服务器启动":"服务器已停止，保留最后输出";return;}
   if(consoleProcessId!=process.Id){
    consoleProcessId=process.Id;updatingConsoleWindow=true;
@@ -68,8 +68,9 @@ internal sealed partial class CoopLauncher {
    consoleOutput.Text="正在连接服务器控制台…";
   }
   try {
-   string snapshot=ConsoleInput.ReadSnapshot((uint)process.Id,!consoleExternal.Checked);
-   consoleHint.Text=busy?"正在执行存档操作":"最近 120 行 · 可在下方输入命令";
+   string snapshot;bool piped=ServerPipeSession.TryRead((uint)process.Id,out snapshot);
+   if(!piped)snapshot=ConsoleInput.ReadSnapshot((uint)process.Id,!consoleExternal.Checked);
+   consoleHint.Text=busy?"正在执行存档操作":piped?"后台无窗口 · 可在下方输入命令":"最近 120 行 · 可在下方输入命令";
    if(consoleRefresh.Checked&&consoleOutput.Text!=snapshot){consoleOutput.Text=snapshot;consoleOutput.SelectionStart=consoleOutput.TextLength;consoleOutput.ScrollToCaret();}
   }catch(Exception){
    consoleHint.Text="控制台连接中；可显示独立窗口排查";
@@ -138,6 +139,9 @@ internal static partial class ConsoleInput {
    }
    return snapshot.ToString();
   }finally{if(output!=new IntPtr(-1))CloseHandle(output);FreeConsole();}
+ }
+ internal static bool HasConsole(uint pid) {
+  FreeConsole();bool attached=AttachConsole(pid);if(attached)FreeConsole();return attached;
  }
  internal static bool WindowVisible(uint pid) {
   FreeConsole();if(!AttachConsole(pid))throw new Exception("Fixture console not available");

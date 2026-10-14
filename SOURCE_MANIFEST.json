@@ -1,6 +1,6 @@
 {
-  "version": "1.6.8",
-  "fileVersion": "1.6.8.0",
+  "version": "1.6.9",
+  "fileVersion": "1.6.9.0",
   "preparedOn": "2026-10-14",
   "unchangedRuntimeInputs": false,
   "runtimeInputs": [
@@ -11,13 +11,13 @@
     },
     {
       "path": "src/CoopLauncherV2.cs",
-      "size": 56118,
-      "sha256": "01bc1669883d5dc7cc9ac9b9eb5f7d99f3cd003cf854af86bc59f56da461cae7"
+      "size": 56627,
+      "sha256": "28b2b2f4159ab266c24b834c1d1edc468cb8daa66383c62836bb7eb97acdaaf6"
     },
     {
       "path": "src/HostBootstrap.cs",
-      "size": 12477,
-      "sha256": "e52c9e5d8cc475a4be2b674951e166d8568d8ffde76a21d456c4f590ee5da1bb"
+      "size": 12575,
+      "sha256": "331777fb600f946e2224dba6041d2cc0ac48151a6b7db506b11b2555d7a07853"
     },
     {
       "path": "src/HostInstallation.cs",
@@ -56,13 +56,18 @@
     },
     {
       "path": "src/ServerConsole.cs",
-      "size": 12941,
-      "sha256": "ce9dff814511599bda9ca72f418248deae1a3773e09c6e37d7411ec1dc331d6b"
+      "size": 13271,
+      "sha256": "0937c4da81fd7c28bcbae037358d7147635d9cf24a858b2e644693270a8343fd"
     },
     {
       "path": "src/LauncherShutdown.cs",
-      "size": 6895,
-      "sha256": "f8bed2e86ed16f030030417fe3060d02f3a1cb743148b58ab5dc1be8c2e6afd1"
+      "size": 6946,
+      "sha256": "0d4ac0e0770d55d838a834cfd5745cd7f4c21288ad546de34b9e0e6d2d9b3d64"
+    },
+    {
+      "path": "src/ServerPipeSession.cs",
+      "size": 5883,
+      "sha256": "26387fed99546a1e0257dbe5819f52b0c5ac8ffccb2df5426bdb0de3159190a8"
     }
   ]
 }
