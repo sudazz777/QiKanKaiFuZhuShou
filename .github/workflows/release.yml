@@ -1,0 +1,82 @@
+name: Build and release Windows app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'build.ps1'
+      - 'test.ps1'
+      - 'SOURCE_MANIFEST.json'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify source manifest
+        shell: powershell
+        run: |
+          $manifest = Get-Content SOURCE_MANIFEST.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          foreach ($inputFile in $manifest.runtimeInputs) {
+            $file = Get-Item -LiteralPath $inputFile.path
+            $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($file.Length -ne $inputFile.size -or $hash -ne $inputFile.sha256) {
+              throw ('Source manifest mismatch: ' + $inputFile.path)
+            }
+          }
+          "APP_VERSION=$($manifest.version)" >> $env:GITHUB_ENV
+
+      - name: Compile and run isolated self-tests
+        shell: powershell
+        run: |
+          .\test.ps1 -OutputDirectory (Join-Path $env:RUNNER_TEMP 'launcher-tests')
+
+      - name: Package executable and user guide
+        shell: powershell
+        run: |
+          $package = Join-Path $env:RUNNER_TEMP 'launcher-package'
+          New-Item -ItemType Directory -Path $package -Force | Out-Null
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'launcher-tests\bin\BannerlordCoopLauncher.exe') (Join-Path $package '骑砍2开服助手.exe')
+          Copy-Item 'docs\使用说明.txt' $package
+          $exe = Join-Path $package '骑砍2开服助手.exe'
+          $actualVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo($exe).FileVersion
+          if ($actualVersion -ne "$env:APP_VERSION.0") { throw ('Executable version mismatch: ' + $actualVersion) }
+          New-Item -ItemType Directory -Path release-output -Force | Out-Null
+          $archive = "BannerlordCoopLauncher-v$env:APP_VERSION-win-x64.zip"
+          Compress-Archive -Path "$package\*" -DestinationPath "release-output\$archive"
+          $hash = (Get-FileHash "release-output\$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $archive" | Set-Content release-output\SHA256SUMS.txt -Encoding ascii
+
+      - name: Retain build artifacts and test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-${{ env.APP_VERSION }}
+          path: |
+            release-output/*
+            ${{ runner.temp }}/launcher-tests/self-test.txt
+          if-no-files-found: error
+
+      - name: Publish tested release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v$env:APP_VERSION"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) { throw ('Release already exists; refusing to replace: ' + $tag) }
+          $archive = "release-output\BannerlordCoopLauncher-$tag-win-x64.zip"
+          gh release create $tag $archive release-output\SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "骑砍2开服助手 $tag" --notes-file docs\RELEASE_NOTES.md --latest
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release publication failed.' }

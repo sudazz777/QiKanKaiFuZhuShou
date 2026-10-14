@@ -1,0 +1,58 @@
+{
+  "version": "1.6.4",
+  "fileVersion": "1.6.4.0",
+  "preparedOn": "2026-10-14",
+  "unchangedRuntimeInputs": true,
+  "runtimeInputs": [
+    {
+      "path": "assets/bannerlord-knight.ico",
+      "size": 250934,
+      "sha256": "8a9a24a571cf31803849e71cb2d3ddb22e3aa7d47a3e107d1710e4a45949b418"
+    },
+    {
+      "path": "src/CoopLauncherV2.cs",
+      "size": 55308,
+      "sha256": "ec2bf5c3613b0301baca42ef5602a70b4d619b088870993a5a7921cf318124fa"
+    },
+    {
+      "path": "src/HostBootstrap.cs",
+      "size": 12410,
+      "sha256": "ae713e525630aa37c791f6cd1c884b5b52f9b4eeb25ad1e0f484497d76d72e3b"
+    },
+    {
+      "path": "src/HostInstallation.cs",
+      "size": 17811,
+      "sha256": "1facb97d8aa9d99e30614b4274e2ad301346eccd1aa98a5472498e06cae339fa"
+    },
+    {
+      "path": "src/InstallationPage.cs",
+      "size": 9745,
+      "sha256": "103a3b90d69a0d1ce7641584edf76b5b6330ad6bd58c2f0c3887ff2d1812bb67"
+    },
+    {
+      "path": "src/InstantSave.cs",
+      "size": 15120,
+      "sha256": "29ddf85412170ed8d31e9f75c1cb135e073224f3b51f01e03edcb82d480e586f"
+    },
+    {
+      "path": "src/SaveManagement.cs",
+      "size": 6037,
+      "sha256": "13ec7c6bf140eadcb849ae44d85df775ec96cc40fbfe94da51d19ecbc9459025"
+    },
+    {
+      "path": "src/SaveStorage.cs",
+      "size": 23024,
+      "sha256": "8c66b5f114cbb11d85b396fe7de39301419a3c5ada1033a18e5c58c8dd0e5c77"
+    },
+    {
+      "path": "src/SteamJoinBridge.cs",
+      "size": 14839,
+      "sha256": "6c8513e0023a86d68f6dd5a189105772a6910602a02c613e532e1e5f8ebd8ab8"
+    },
+    {
+      "path": "src/SteamRuntime.cs",
+      "size": 10167,
+      "sha256": "ca6aa06b37c0ad1744ef2abee43c2637c8d3054a9000e92ce662077c4788a16a"
+    }
+  ]
+}
