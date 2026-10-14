@@ -7,3 +7,6 @@
 *.md text eol=lf
 *.json text eol=lf
 *.ico binary
+
+# Preserve the exact runtime source bytes recorded in SOURCE_MANIFEST.json.
+src/*.cs -text
