@@ -38,7 +38,7 @@ internal sealed partial class CoopLauncher {
  static string CleanPath(string value){return string.IsNullOrWhiteSpace(value)?"":Path.GetFullPath(value.Trim().Trim('"'));}
  void FillInstallation(HostInstallation install){installSteam.Text=install.SteamExe;installGame.Text=install.GameDir;installServer.Text=install.ServerDir;installData.Text="本机存档目录（按 Windows 文档位置自动适配）：\r\n"+install.DataDir;}
  void ShowInstallationResult(){var draft=InstallationDraft();string[] errors=HostBootstrap.Inspect(draft);installResult.Text=errors.Length==0?"安装与版本检查通过。适配将保留当前存档、密码与难度；首次开服请按服务器提示完成协议确认。":string.Join("\r\n",errors);installResult.ForeColor=errors.Length==0?Color.DarkGreen:Color.Firebrick;}
- void SetInstallationControls(){worldPage.Enabled=installationReady;difficultyPage.Enabled=installationReady;if(!installationReady)tabs.SelectedTab=installationPage;}
+ void SetInstallationControls(){worldPage.Enabled=installationReady;difficultyPage.Enabled=installationReady;}
  void OnLauncherShown() {
   Rectangle available=Screen.FromControl(this).WorkingArea;int fitWidth=Math.Max(MinimumSize.Width,available.Width-24),fitHeight=Math.Max(MinimumSize.Height,available.Height-24);if(Width>fitWidth||Height>fitHeight)Size=new Size(Math.Min(Width,fitWidth),Math.Min(Height,fitHeight));
   if(preview){info.Text="界面预览：不启动服务器、不修改设置。";RefreshStatus();return;}

@@ -1,6 +1,6 @@
 {
-  "version": "1.6.6",
-  "fileVersion": "1.6.6.0",
+  "version": "1.6.7",
+  "fileVersion": "1.6.7.0",
   "preparedOn": "2026-10-14",
   "unchangedRuntimeInputs": false,
   "runtimeInputs": [
@@ -11,8 +11,8 @@
     },
     {
       "path": "src/CoopLauncherV2.cs",
-      "size": 56117,
-      "sha256": "bc7db47c3a170c290959d6982a26ef40f229030e7f5498c13aff6ec44163deee"
+      "size": 56118,
+      "sha256": "4c7a36e5d23aa6f74fe2b7baacbdab233e3ddaee4bd258e4fb7eb61b31f8a232"
     },
     {
       "path": "src/HostBootstrap.cs",
@@ -26,8 +26,8 @@
     },
     {
       "path": "src/InstallationPage.cs",
-      "size": 9745,
-      "sha256": "103a3b90d69a0d1ce7641584edf76b5b6330ad6bd58c2f0c3887ff2d1812bb67"
+      "size": 9689,
+      "sha256": "8c34c47a62e767106f32593474a9f4a81fd6edfa9215c6061582558b6614350e"
     },
     {
       "path": "src/InstantSave.cs",

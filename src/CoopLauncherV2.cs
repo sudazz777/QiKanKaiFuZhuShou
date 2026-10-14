@@ -12,8 +12,8 @@ using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
-[assembly: System.Reflection.AssemblyFileVersion("1.6.6.0")]
-[assembly: System.Reflection.AssemblyInformationalVersion("2026.10.14 关闭同步停服版")]
+[assembly: System.Reflection.AssemblyFileVersion("1.6.7.0")]
+[assembly: System.Reflection.AssemblyInformationalVersion("2026.10.14 默认开服与存档页")]
 
 internal static class Program {
  [STAThread] static void Main(string[] args) {
@@ -63,7 +63,7 @@ internal sealed partial class CoopLauncher : Form {
  public CoopLauncher(bool previewOnly,bool needsSetup) {
   firstSetup=needsSetup;installationReady=!needsSetup&&HostBootstrap.Inspect(HostInstallation.Current).Length==0;
   bridge=new SteamJoinBridge(HostInstallation.Current.ModuleBin);
-  preview=previewOnly; Text="骑砍2开服助手 · 公开大厅与战役设置 · v1.6.6";
+  preview=previewOnly; Text="骑砍2开服助手 · 公开大厅与战役设置 · v1.6.7";
   LoadAppIcon();
   AutoScaleMode=AutoScaleMode.Dpi; Font=new Font("Microsoft YaHei UI",10);
   ClientSize=new Size(780,756);MinimumSize=new Size(600,450);AutoScroll=true;AutoScrollMinSize=new Size(780,756);FormBorderStyle=FormBorderStyle.Sizable;MaximizeBox=true;
@@ -84,7 +84,7 @@ internal sealed partial class CoopLauncher : Form {
   var footer=new Label{Text="关闭助手会先保存并停止服务器；请等待保存完成，窗口将自动关闭。",Location=new Point(25,720),Size=new Size(733,24),ForeColor=Color.DimGray,Font=new Font(Font.FontFamily,9)};
   Controls.AddRange(new Control[]{title,badge,localState,steamState,friendState,notice,tabs,start,saveNow,restart,game,stop,info,footer});
   if(installationReady)try{LoadSettings();}catch(Exception e){settingsLoaded=false;info.Text="配置读取失败："+e.Message;}
-  SetInstallationControls();
+  SetInstallationControls();tabs.SelectedTab=worldPage;
   statusTimer.Interval=1000; statusTimer.Tick+=(s,e)=>RefreshStatus(); statusTimer.Start();
   steamTimer.Interval=100; steamTimer.Tick+=(s,e)=>{if(!preview&&installationReady)bridge.Tick(candidateLobby);friendState.Text="好友头像 / 资料页加入："+(!installationReady?"请先完成本机安装适配":preview?"预览模式，未发布加入入口":bridge.StatusText.Replace("Steam 好友加入入口：", ""));friendState.ForeColor=bridge.EntryReady?Color.DarkGreen:Color.DarkGoldenrod;};steamTimer.Start();
   Shown+=(s,e)=>OnLauncherShown();
@@ -330,7 +330,7 @@ internal sealed partial class CoopLauncher : Form {
   // Plain dedicated mode uses the authoritative data folder, creates missing worlds from its template,
   // and advertises a public Steam lobby. /coopsave switches save storage and is deliberately omitted.
   var launch=ServerProcess(HostInstallation.Current);
-  var p=Process.Start(launch);if(startedServer!=null)startedServer.Dispose();startedServer=p;trackedPid=p.Id;tabs.SelectedTab=consolePage;
+  var p=Process.Start(launch);if(startedServer!=null)startedServer.Dispose();startedServer=p;trackedPid=p.Id;
   info.Text="正在加载“"+draft.Save.Name+"”，预计约一分钟。公开大厅 · "+PasswordState(!string.IsNullOrEmpty(draft.Password))+"。Steam 入口就绪后，好友可点资料页的“加入游戏”。"+steamRuntimeNotice;LogEvent("启动专用服务器，存档="+runningSave);RefreshStatus();
  }
  internal static ProcessStartInfo ServerProcess(HostInstallation install) {
