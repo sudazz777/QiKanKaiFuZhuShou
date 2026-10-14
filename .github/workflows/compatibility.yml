@@ -1,0 +1,74 @@
+name: Test released app on clean Windows machines
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/compatibility.yml'
+      - '.github/scripts/check-clean-start.ps1'
+      - '.github/scripts/verify-windowless.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: Released app on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    env:
+      APP_TAG: v1.6.9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and verify published package
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'released-app-compatibility'
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+          gh release download $env:APP_TAG --repo $env:GITHUB_REPOSITORY --pattern "BannerlordCoopLauncher-$env:APP_TAG-win-x64.zip" --pattern SHA256SUMS.txt --dir $root
+          if ($LASTEXITCODE -ne 0) { throw 'Published package download failed.' }
+          $zip = Join-Path $root "BannerlordCoopLauncher-$env:APP_TAG-win-x64.zip"
+          $expected = ((Get-Content (Join-Path $root 'SHA256SUMS.txt') -Raw).Trim() -split '\s+')[0]
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Release package hash mismatch.' }
+          $appFolder = Join-Path $root '中文路径-新电脑'
+          Expand-Archive -LiteralPath $zip -DestinationPath $appFolder
+          $exe = (Get-ChildItem $appFolder -Filter '*.exe' -File).FullName
+          "RELEASED_EXE=$exe" >> $env:GITHUB_ENV
+          "CHECK_ROOT=$root" >> $env:GITHUB_ENV
+          $os = Get-CimInstance Win32_OperatingSystem
+          $release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release
+          $version = [Diagnostics.FileVersionInfo]::GetVersionInfo($exe).FileVersion
+          "OS=$($os.Caption) / $($os.Version) / .NET Framework Release=$release / App=$version" | Tee-Object (Join-Path $root 'environment.txt')
+          if ($version -ne '1.6.9.0') { throw 'Unexpected published app version.' }
+      - name: Open actual app on clean desktop and verify default page
+        shell: powershell
+        run: |
+          .\.github\scripts\check-clean-start.ps1 -Executable $env:RELEASED_EXE -Version '1.6.9'
+      - name: Run all checks in the published executable
+        shell: pwsh
+        run: |
+          $report = Join-Path $env:CHECK_ROOT 'self-test.txt'
+          $child = Start-Process $env:RELEASED_EXE -ArgumentList @('--self-test', ('"' + $report + '"')) -Wait -PassThru
+          if (!(Test-Path $report)) { throw 'Published app produced no self-test report.' }
+          Get-Content $report -Encoding UTF8
+          if ($child.ExitCode -ne 0 -or (Select-String $report -Pattern '^FAIL ' -Quiet)) { throw 'Published app self-test failed.' }
+      - name: Verify real console-subsystem process with windowless pipes
+        shell: powershell
+        run: |
+          .\.github\scripts\verify-windowless.ps1 -Executable $env:RELEASED_EXE -OutputDirectory (Join-Path $env:CHECK_ROOT 'console-subsystem')
+      - name: Save environment and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-${{ matrix.os }}
+          path: |
+            ${{ env.CHECK_ROOT }}/environment.txt
+            ${{ env.CHECK_ROOT }}/self-test.txt
+          if-no-files-found: warn
