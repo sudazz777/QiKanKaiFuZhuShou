@@ -1,0 +1,48 @@
+name: Verify windowless console-subsystem launch
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/windowless-check.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build launcher and verify a console-subsystem fixture
+        shell: powershell
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'windowless-console-check'
+          .\build.ps1 -OutputDirectory (Join-Path $root 'bin')
+          $original = Join-Path $root 'bin\BannerlordCoopLauncher.exe'
+          $fixture = Join-Path $root 'ConsoleSubsystemFixture.exe'
+          $bytes = [IO.File]::ReadAllBytes($original)
+          $peOffset = [BitConverter]::ToInt32($bytes, 0x3c)
+          $subsystemOffset = $peOffset + 24 + 68
+          if ([BitConverter]::ToUInt16($bytes, $subsystemOffset) -ne 2) {
+            throw 'Expected the product executable to use the Windows GUI subsystem.'
+          }
+          # Change only a throwaway copy into a real console application. The
+          # product executable and downloadable package remain untouched.
+          [BitConverter]::GetBytes([UInt16]3).CopyTo($bytes, $subsystemOffset)
+          [IO.File]::WriteAllBytes($fixture, $bytes)
+          if ([BitConverter]::ToUInt16([IO.File]::ReadAllBytes($fixture), $subsystemOffset) -ne 3) {
+            throw 'Fixture must use the console subsystem.'
+          }
+          $assembly = [Reflection.Assembly]::LoadFrom($fixture)
+          $checks = $assembly.GetType('ServerPipeChecks', $true)
+          $method = $checks.GetMethod('Check', [Reflection.BindingFlags]'Static,NonPublic')
+          $results = New-Object 'System.Collections.Generic.List[string]'
+          $arguments = New-Object object[] 2
+          $arguments[0] = Join-Path $root 'report.txt'
+          $arguments[1] = $results
+          try { $method.Invoke($null, $arguments) }
+          catch { throw $_.Exception.InnerException }
+          $results | ForEach-Object { Write-Output $_ }
+          if ($results.Count -ne 3) { throw 'Windowless checks did not complete.' }
