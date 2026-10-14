@@ -35,14 +35,23 @@ jobs:
           if ([BitConverter]::ToUInt16([IO.File]::ReadAllBytes($fixture), $subsystemOffset) -ne 3) {
             throw 'Fixture must use the console subsystem.'
           }
-          $assembly = [Reflection.Assembly]::LoadFrom($fixture)
-          $checks = $assembly.GetType('ServerPipeChecks', $true)
-          $method = $checks.GetMethod('Check', [Reflection.BindingFlags]'Static,NonPublic')
-          $results = New-Object 'System.Collections.Generic.List[string]'
-          $arguments = New-Object object[] 2
-          $arguments[0] = Join-Path $root 'report.txt'
-          $arguments[1] = $results
-          try { $method.Invoke($null, $arguments) }
-          catch { throw $_.Exception.InnerException }
+          Add-Type -TypeDefinition @'
+          using System;
+          using System.Collections.Generic;
+          using System.Reflection;
+          public static class WindowlessCheckInvoker {
+            public static string[] Run(string executable, string report) {
+              var assembly = Assembly.LoadFrom(executable);
+              var type = assembly.GetType("ServerPipeChecks", true);
+              var method = type.GetMethod("Check", BindingFlags.Static | BindingFlags.NonPublic);
+              var results = new List<string>();
+              try { method.Invoke(null, new object[] { report, results }); }
+              catch (TargetInvocationException error) { throw error.InnerException; }
+              return results.ToArray();
+            }
+          }
+          '@
+          $report = Join-Path $root 'report.txt'
+          $results = [WindowlessCheckInvoker]::Run($fixture, $report)
           $results | ForEach-Object { Write-Output $_ }
-          if ($results.Count -ne 3) { throw 'Windowless checks did not complete.' }
+          if ($results.Length -ne 3) { throw 'Windowless checks did not complete.' }
