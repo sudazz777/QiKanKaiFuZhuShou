@@ -59,7 +59,7 @@ internal sealed partial class CoopLauncher {
 
  void UpdateServerConsole(Process process,string log) {
   bool running=process!=null&&!preview;
-  bool busy=pendingRestart!=null||pendingExport!=null||pendingInstantSave!=null;
+  bool busy=closeRequested||pendingRestart!=null||pendingExport!=null||pendingInstantSave!=null;
   consoleSend.Enabled=consoleCommand.Enabled=running&&!busy;consoleExternal.Enabled=running;
   if(!running){consoleHint.Text=consoleProcessId==0?"等待服务器启动":"服务器已停止，保留最后输出";return;}
   if(consoleProcessId!=process.Id){
@@ -80,10 +80,7 @@ internal sealed partial class CoopLauncher {
   }
  }
 
- void RestoreServerConsole() {
-  if(preview||consoleProcessId==0)return;
-  try{using(var process=FindServer()){if(process!=null&&process.Id==consoleProcessId)ConsoleInput.SetVisible((uint)process.Id,true);}}catch{}
- }
+
 }
 
 internal static partial class ConsoleInput {
@@ -130,14 +127,14 @@ internal static class ServerConsoleChecks {
  [DllImport("kernel32.dll",SetLastError=true)]static extern bool AllocConsole();
  [DllImport("kernel32.dll",CharSet=CharSet.Unicode)]static extern bool WriteConsoleW(IntPtr output,string text,uint length,out uint written,IntPtr reserved);
  [DllImport("kernel32.dll")]static extern IntPtr GetStdHandle(int id);
- internal static void RunFixture() {
+ internal static void RunFixture(string marker) {
   if(!AllocConsole()){Environment.ExitCode=1;return;}
   Write("FIXTURE 中文服务器日志\r\n请输入命令：\r\n");
   string command;
-  while((command=Console.ReadLine())!=null){Write("COMMAND "+command+"\r\n");if(command=="exit")return;}
+  while((command=Console.ReadLine())!=null){Write("COMMAND "+command+"\r\n");if(command=="stop"){Thread.Sleep(250);if(!string.IsNullOrEmpty(marker))File.WriteAllText(marker,"saved");return;}if(command=="exit")return;}
  }
  static void Write(string text){uint written;if(!WriteConsoleW(GetStdHandle(-11),text,(uint)text.Length,out written,IntPtr.Zero))throw new IOException("Fixture output failed");}
- static string WaitFor(Process process,string expected) {
+ internal static string WaitFor(Process process,string expected) {
   var deadline=DateTime.UtcNow.AddSeconds(10);
   while(DateTime.UtcNow<deadline){
    if(process.HasExited)throw new Exception("Fixture exited unexpectedly");
@@ -155,7 +152,7 @@ internal static class ServerConsoleChecks {
     ConsoleInput.Send((uint)fixture.Id,"ping");WaitFor(fixture,"COMMAND ping");
     results.Add("PASS 内嵌控制台通过原输入通道发送命令，服务器成功接收并响应；拒绝多行命令");
     ConsoleInput.SetVisible((uint)fixture.Id,true);if(!ConsoleInput.WindowVisible((uint)fixture.Id))throw new Exception("Console window was not restored");
-    results.Add("PASS 关闭助手时使用的控制台恢复操作保留正在运行的服务器进程");
+    results.Add("PASS 手动显示独立控制台时保留正在运行的服务器进程");
     ConsoleInput.Send((uint)fixture.Id,"exit");if(!fixture.WaitForExit(5000)||fixture.ExitCode!=0)throw new Exception("Fixture did not exit normally");
    }finally{if(!fixture.HasExited){fixture.Kill();fixture.WaitForExit();}}
   }

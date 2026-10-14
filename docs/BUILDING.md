@@ -4,7 +4,7 @@
 
 在 64 位 Windows 上运行 `build.cmd`，或在项目目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1`。
 
-脚本调用 `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`，编译显式列出的十个 C# 文件，并将图标作为 Windows 图标及 `CoopLauncher.AppIcon.ico` 资源嵌入。只引用 .NET Framework 自带的 Windows Forms、Drawing、Web Extensions 与 Visual Basic 等程序集。
+脚本调用 `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`，编译显式列出的十一个 C# 文件，并将图标作为 Windows 图标及 `CoopLauncher.AppIcon.ico` 资源嵌入。只引用 .NET Framework 自带的 Windows Forms、Drawing、Web Extensions 与 Visual Basic 等程序集。
 
 默认输出：`bin\Release\BannerlordCoopLauncher.exe`。也可指定输出目录：
 

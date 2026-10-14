@@ -60,7 +60,7 @@ internal sealed partial class CoopLauncher {
   }
  }
  void FinishInstantSave(string message,bool completed) {
-  var job=pendingInstantSave;pendingInstantSave=null;tabs.Enabled=pendingRestart==null&&pendingExport==null;
+  var job=pendingInstantSave;pendingInstantSave=null;tabs.Enabled=!closeRequested&&pendingRestart==null&&pendingExport==null;
   info.Text=message;if(job!=null)LogEvent((completed?"立刻保存已完成 ":"立刻保存未确认 ")+job.Name+"："+message);
  }
  void PollInstantSaveReadError() {
