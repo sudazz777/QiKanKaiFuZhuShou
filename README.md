@@ -2,9 +2,9 @@
 
 用于 Windows 上《骑马与砍杀2》Bannerlord Co-op MOD 专用服务器的中文开服助手。当前版本为 **v1.6.4**，源码整理日期为 **2026-10-14**。
 
-[⬇ 下载 Windows 64 位成品 v1.6.4](https://github.com/sudazz777/QiKanKaiFuZhuShou/releases/download/v1.6.4/BannerlordCoopLauncher-v1.6.4-win-x64.zip)
+[打开独立下载页](https://qikan2-launcher-sudazz777.meisen111.chatgpt.site) · [⬇ 下载 Windows 64 位成品 v1.6.4](https://github.com/sudazz777/QiKanKaiFuZhuShou/releases/download/v1.6.4/BannerlordCoopLauncher-v1.6.4-win-x64.zip)
 
-下载后“全部解压”，双击“骑砍2开服助手.exe”。成品包包含程序及使用说明。
+下载后“全部解压”，双击“骑砍2开服助手.exe”。成品包包含程序及使用说明。当前仓库与下载页保持私有，GitHub 成品下载需要登录有权限的账号。
 
 本项目提供开服与存档管理界面，使用本机已经安装的游戏、MOD 和专用服务器组件。Bannerlord Co-op 是联机 MOD 本体；Bannerlord Coop 简体中文补丁是汉化补丁。
 
